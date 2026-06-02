@@ -1,0 +1,48 @@
+name: Pull Shark Automator
+
+on:
+  schedule:
+    # Runs at 12:00 UTC (8:00 AM EDT) every day
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allows you to trigger it manually from the Actions tab
+
+jobs:
+  bump-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Branch and Empty Commit
+        run: |
+          BRANCH_NAME="auto-pr-$(date +%Y%m%d)"
+          git checkout -b "$BRANCH_NAME"
+          git commit --allow-empty -m "Automated commit: $(date +%F)"
+          git push origin "$BRANCH_NAME"
+          
+          # Pass branch name to subsequent steps
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create and Merge Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create the PR and grab its URL
+          PR_URL=$(gh pr create \
+            --title "Automated PR $(date +%F)" \
+            --body "Automated PR to increment calendar day merge metrics." \
+            --base main \
+            --head "$BRANCH_NAME")
+          
+          # Brief pause for backend synchronization
+          sleep 5
+          
+          # Merge the PR and delete the remote branch
+          gh pr merge "$PR_URL" --merge --delete-branch
