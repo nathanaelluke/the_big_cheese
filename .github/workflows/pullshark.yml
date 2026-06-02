@@ -2,9 +2,12 @@ name: Pull Shark Automator
 
 on:
   schedule:
-    # Runs at 12:00 UTC (8:00 AM EDT) every day
     - cron: '0 12 * * *'
-  workflow_dispatch: # Allows you to trigger it manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   bump-stats:
