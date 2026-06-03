@@ -38,7 +38,7 @@ for ((i=1; i<=TARGET_PRS; i++)); do
     git commit \
         -m "chore: pair extraordinaire cheese $i" \
         -m "" \
-        -m "Co-authored-by: orthogonalmind <carrot-seer.6g@icloud.com>"
+        -m "Co-authored-by: octocat <octocat@github.com>"
 
     git push origin "$BRANCH_NAME"
 

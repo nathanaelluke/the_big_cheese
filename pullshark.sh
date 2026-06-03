@@ -24,7 +24,7 @@ git checkout "$MAIN_BRANCH"
 git pull origin "$MAIN_BRANCH"
 
 for ((i=1; i<=TARGET_PRS; i++)); do
-    BRANCH_NAME="pull-shark-cheese-$i"
+    BRANCH_NAME="psc-$i"
 
     echo "------------------------------------------------"
     echo " processing pr $i of $TARGET_PRS..."
@@ -34,14 +34,14 @@ for ((i=1; i<=TARGET_PRS; i++)); do
     echo "shark cheese $i: $(date +%s)" > SHARK_CHEESE.txt
     git add SHARK_CHEESE.txt
     
-    git commit -m "chore: pull shark cheese commit $i"
+    git commit -m "chore: pull commit $i"
     git push origin "$BRANCH_NAME"
 
     RANDOM_INDEX=$((RANDOM % TOTAL_SLOP))
     RANDOM_SLOP="${CORPORATE_SLOP[$RANDOM_INDEX]}"
 
     gh pr create \
-        --title "pull shark pr $i" \
+        --title "$RANDOM_SLOP " \
         --body "$RANDOM_SLOP" \
         --base "$MAIN_BRANCH" \
         --head "$BRANCH_NAME"
