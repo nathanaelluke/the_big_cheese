@@ -8,7 +8,7 @@ if ! gh auth status >/dev/null 2>&1; then
     exit 1
 fi
 
-echo " starting open sourcerer grind across $NUM_REPOS repositories..."
+echo " starting open sourcerer grind across $NUM_REPOS repositories"
 
 START_DIR=$(pwd)
 
@@ -58,7 +58,7 @@ for ((i=1; i<=NUM_REPOS; i++)); do
     cd "$START_DIR"
     rm -rf "$TEMP_DIR"
     
-    echo " sleeping for 5 seconds to avoid rate limits..."
+    echo " sleeping for 5 seconds to avoid rate limits"
     sleep 5
 done
 

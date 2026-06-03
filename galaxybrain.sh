@@ -1,14 +1,17 @@
 #!/bin/bash
 
-echo " galaxy brain cheese script "
-echo "since you cannot accept your own answers to get the badge, this script"
-echo "automates the process between your main account and an alt account."
-echo ""
 echo "requirements:"
 echo "1. your main account must be authenticated via github cli ('gh auth login')."
 echo "2. you need a personal access token (pat) from an alt account."
 echo "3. you need a public repository with discussions enabled and an 'answerable' category (like q&a)."
 echo ""
+
+QA_FILE="./jira_ticket_padding.yaml"
+
+if [ ! -f "$QA_FILE" ]; then
+    echo " error: $QA_FILE not found. please ensure it is in the same directory."
+    exit 1
+fi
 
 if ! command -v jq &> /dev/null; then
     echo " error: 'jq' is not installed. please install it first."
@@ -31,7 +34,7 @@ fi
 owner=$(echo "$REPO_FULL" | cut -d'/' -f1)
 repo=$(echo "$REPO_FULL" | cut -d'/' -f2)
 
-echo " fetching repository and category ids..."
+echo " fetching repository and category ids."
 
 REPO_QUERY='
 query($owner: String!, $name: String!) {
@@ -63,15 +66,22 @@ if [ -z "$CAT_ID" ]; then
     exit 1
 fi
 
+mapfile -t QA_ARRAY < "$QA_FILE"
+TOTAL_QA=${#QA_ARRAY[@]}
+
+echo " loaded $TOTAL_QA robust synergistic questions."
 echo " repository id: $REPO_ID"
 echo " category id: $CAT_ID"
-echo " starting the grind for 32 accepted answers (galaxy brain gold)..."
+echo " beginning pretense of knowledge."
 
 for ((i=1; i<=32; i++)); do
     echo "------------------------------------------------"
-    echo "processing discussion $i of 32..."
+    echo "processing discussion $i of 32."
 
+    QA_PAIR="${QA_ARRAY[$(( (i-1) % TOTAL_QA ))]}"
     
+    IFS='|' read -r TITLE BODY ANSWER <<< "$QA_PAIR"
+
     CREATE_DISC_MUTATION='
     mutation($repoId: ID!, $catId: ID!, $title: String!, $body: String!) {
       createDiscussion(input: {repositoryId: $repoId, categoryId: $catId, title: $title, body: $body}) {
@@ -82,8 +92,8 @@ for ((i=1; i<=32; i++)); do
     DISC_RES=$(GITHUB_TOKEN="$ALT_TOKEN" gh api graphql -f query="$CREATE_DISC_MUTATION" \
         -f repoId="$REPO_ID" \
         -f catId="$CAT_ID" \
-        -f title="galaxy brain cheese $i" \
-        -f body="can you help me with this cheese?")
+        -f title="$TITLE" \
+        -f body="$BODY")
     
     DISC_ID=$(echo "$DISC_RES" | jq -r '.data.createDiscussion.discussion.id // empty')
 
@@ -95,7 +105,6 @@ for ((i=1; i<=32; i++)); do
     echo " alt account created discussion."
     sleep 2
 
-    
     ADD_COMMENT_MUTATION='
     mutation($discussionId: ID!, $body: String!) {
       addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
@@ -105,7 +114,7 @@ for ((i=1; i<=32; i++)); do
 
     COMMENT_RES=$(gh api graphql -f query="$ADD_COMMENT_MUTATION" \
         -f discussionId="$DISC_ID" \
-        -f body="here is the solution to your cheese: $i")
+        -f body="$ANSWER")
 
     COMMENT_ID=$(echo "$COMMENT_RES" | jq -r '.data.addDiscussionComment.comment.id // empty')
 
@@ -117,7 +126,6 @@ for ((i=1; i<=32; i++)); do
     echo " main account answered."
     sleep 2
 
-    
     MARK_ANSWER_MUTATION='
     mutation($id: ID!) {
       markDiscussionCommentAsAnswer(input: {id: $id}) {
@@ -131,4 +139,4 @@ for ((i=1; i<=32; i++)); do
     sleep 3
 done
 
-echo " galaxy brain gold complete! check your github profile."
+echo " galaxy brain gold complete"
